@@ -1,7 +1,22 @@
 import React, { Component } from 'react';
+import { Route, Switch } from 'react-router-dom';
+import { Button, Modal, FormGroup, ControlLabel, FormControl, HelpBlock } from 'react-bootstrap';
+import { createStore } from 'redux';
 import logo from './logo.svg';
 import './App.css';
-import { Button, Modal, FormGroup, ControlLabel, FormControl, HelpBlock } from 'react-bootstrap';
+
+window.id = 0;
+
+function changeItems(state = [], action) {
+  switch (action.type) {
+  case 'ADD':
+    return state.concat([{key: window.id++, text: action.item.text}]);
+  default:
+    return state;
+  }
+}
+
+let store = createStore(changeItems);
 
 class ItemForm extends Component {
   handleSubmit(e) {
@@ -129,7 +144,7 @@ class LoginModal extends Component {
       <div>
         <Button
           bsStyle="primary"
-          bsSize="medium"
+          bsSize="small"
           onClick={this.open.bind(this)}
         >
           Edit Existing Registry
@@ -153,15 +168,16 @@ class LoginModal extends Component {
 
 class NewRegistryButton extends Component {
   create() {
-    alert('Stuff goes here');
+    // alert('Stuff goes here');
   }
 
   render() {
     return (
       <Button
         bsStyle="primary"
-        bsSize="medium"
+        bsSize="small"
         onClick={this.create.bind(this)}
+        href="/registry"
       >
         Create a New Registry!
       </Button>
@@ -169,20 +185,35 @@ class NewRegistryButton extends Component {
   }
 }
 
-window.id = 0;
+class Registry extends Component {
+  render() {
+    console.log('this Registry', this);
+    const state = store.getState();
+    return (
+      <div>
+        <ItemList items={state} />
+        <ItemForm addItem={this.props.addItem} />
+        <div>
+          <EmailForm />
+        </div>
+      </div>
+    );
+  }
+}
+
 class App extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      data: []
-    };
     this.addItem = this.addItem.bind(this);
   }
 
   addItem(val) {
     const item = { text: val, id: window.id++ };
-    this.state.data.push(item);
-    this.setState({ data: this.state.data });
+    store.dispatch({ type: 'ADD', item });
+    const state = store.getState();
+    this.setState({ data: state });
+    // this.state.data.push(item);
+    // this.setState({ data: this.state.data });
   }
 
   render() {
@@ -190,19 +221,15 @@ class App extends Component {
       <div className="App">
         <div className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <h2>Welcome to React</h2>
+          <h2>Wedding Registry</h2>
         </div>
         <div>
           <NewRegistryButton />
           <LoginModal />
         </div>
-        <div>
-          <ItemList items={this.state.data} />
-          <ItemForm addItem={this.addItem} />
-        </div>
-        <div>
-          <EmailForm />
-        </div>
+        <Switch>
+          <Route path='/registry' render={()=><Registry addItem={this.addItem.bind(this)}/>} />
+        </Switch>
       </div>
     );
   }
