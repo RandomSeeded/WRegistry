@@ -5,6 +5,7 @@ import './App.css';
 class ItemForm extends Component {
   handleSubmit(e) {
     this.props.addItem(this.input.value);
+    this.input.value = '';
     e.preventDefault();
   }
 
@@ -39,6 +40,32 @@ class ItemList extends Component {
   }
 }
 
+class EmailForm extends Component {
+  handleSubmit(e) {
+    e.preventDefault();
+  }
+
+  render() {
+    // TODO (nw): need to have modal for inviting all your guests
+    return (
+      <form onSubmit={this.handleSubmit.bind(this)} method="post">
+        <input name="name" placeholder="Description" ref={node => {
+          this.input = node;
+        }}/>
+        <button>Invite guest to view your registry!</button>
+      </form>
+    );
+  }
+}
+
+class Login extends Component {
+  render() {
+    return (
+      <p>Hi</p>
+    );
+  }
+}
+
 window.id = 0;
 class App extends Component {
   constructor(props) {
@@ -62,11 +89,13 @@ class App extends Component {
           <img src={logo} className="App-logo" alt="logo" />
           <h2>Welcome to React</h2>
         </div>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
-        <ItemForm addItem={this.addItem} />
-        <ItemList items={this.state.data} />
+        <div>
+          <ItemList items={this.state.data} />
+          <ItemForm addItem={this.addItem} />
+        </div>
+        <div>
+          <EmailForm />
+        </div>
       </div>
     );
   }
