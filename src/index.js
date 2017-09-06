@@ -5,17 +5,18 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import registerServiceWorker from './registerServiceWorker';
-import App from './App';
+import App from './components/App';
 import { createStore } from 'redux';
 import { Provider } from 'react-redux'
-import todoApp from './reducers'
+import weddingRegistry from './reducers'
+// import { Router, Route } from 'react-router-dom';
 
-let store = createStore(todoApp);
+let store = createStore(weddingRegistry);
 
-// ReactDOM.render(<App />, document.getElementById('root'));
 ReactDOM.render(
   <Provider store={store}>
     <App />
   </Provider>,
-  document.getElementById('root'));
+  document.getElementById('root')
+);
 registerServiceWorker();
