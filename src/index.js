@@ -6,12 +6,16 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import registerServiceWorker from './registerServiceWorker';
 import App from './App';
-import { BrowserRouter } from 'react-router-dom';
+import { createStore } from 'redux';
+import { Provider } from 'react-redux'
+import todoApp from './reducers'
+
+let store = createStore(todoApp);
 
 // ReactDOM.render(<App />, document.getElementById('root'));
 ReactDOM.render(
-  <BrowserRouter>
+  <Provider store={store}>
     <App />
-  </BrowserRouter>, 
-document.getElementById('root'));
+  </Provider>,
+  document.getElementById('root'));
 registerServiceWorker();
