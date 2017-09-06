@@ -9,7 +9,6 @@ import App from './components/App';
 import { createStore } from 'redux';
 import { Provider } from 'react-redux'
 import weddingRegistry from './reducers'
-// import { Router, Route } from 'react-router-dom';
 
 let store = createStore(weddingRegistry);
 
