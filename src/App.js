@@ -4,13 +4,19 @@ import { Button, Modal, FormGroup, ControlLabel, FormControl, HelpBlock } from '
 import { createStore } from 'redux';
 import logo from './logo.svg';
 import './App.css';
+import * as _ from 'lodash';
 
-window.id = 0;
+window.id = 1;
 
-function changeItems(state = [], action) {
+function changeItems(state = [{text:'hi', key: 0}], action) {
   switch (action.type) {
   case 'ADD':
     return state.concat([{key: window.id++, text: action.item.text}]);
+  case 'REMOVE':
+    console.log('here');
+    console.log('action', action);
+    console.log('state', state);
+    return _.reject(state, item => action.key === item.key);
   default:
     return state;
   }
@@ -31,16 +37,94 @@ class ItemForm extends Component {
         <input name="name" placeholder="Description" ref={node => {
           this.input = node;
         }}/>
-        <button>Add Item</button>
+        <Button>Add Item</Button>
       </form>
     );
   }
 }
 
-class Item extends Component {
+class ItemText extends Component {
   render() {
     return (
-      <li>{this.props.item.text}</li>
+      <span>{this.props.item.text}</span>
+    );
+  }
+}
+
+class ItemEditButton extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      showModal: false
+    };
+  }
+
+  close() {
+    this.setState({ showModal: false });
+  }
+
+  delete() {
+    this.props.removeItem({ key: this.props.item.key });
+    this.setState({ showModal: false });
+  }
+
+  save() {
+    // TODO (nw): this
+    // this.props.saveItem({ key: this.props.item.key });
+    this.setState({ showModal: false });
+  }
+
+  open() {
+    this.setState({ showModal: true });
+  }
+  
+  handleSubmit(e) {
+    e.preventDefault();
+  }
+
+  render() {
+    console.log('this', this);
+    return (
+      <span>
+        <Button
+          bsStyle="primary"
+          bsSize="small"
+          onClick={this.open.bind(this)}
+        >
+          Edit
+        </Button>
+        <Modal show={this.state.showModal} onHide={this.close.bind(this)}>
+          <Modal.Header closeButton>
+            <Modal.Title>Login</Modal.Title>
+          </Modal.Header>
+	  <Modal.Body>
+            <FormGroup
+              controlId="Update Description"
+            >
+            <FormControl
+              type="text"
+              value={this.props.item.text}
+            />
+            </FormGroup>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button onClick={this.delete.bind(this)}>Delete</Button>
+            <Button onClick={this.close.bind(this)}>Close</Button>
+            <Button onClick={this.save.bind(this)}>Save</Button>
+          </Modal.Footer>
+        </Modal>
+      </span>
+    );
+  }
+}
+
+class ItemContainer extends Component {
+  render() {
+    return (
+      <div>
+        <ItemEditButton item={this.props.item} removeItem={this.props.removeItem}/>
+        <ItemText item={this.props.item}/>
+      </div>
     );
   }
 }
@@ -48,21 +132,23 @@ class Item extends Component {
 class ItemList extends Component {
   render() {
     const items = this.props.items.map(item => {
-      return (<Item item={item} key={item.id}/>);
+      return (<ItemContainer item={item} key={item.id} removeItem={this.props.removeItem}/>);
     });
     return (
-      <ul>{items}</ul>
+      <div>
+        {items}
+      </div>
     );
   }
 }
 
 class EmailForm extends Component {
+  // TODO (nw): this needs to do things
   handleSubmit(e) {
     e.preventDefault();
   }
 
   render() {
-    // TODO (nw): need to have modal for inviting all your guests
     return (
       <form onSubmit={this.handleSubmit.bind(this)} method="post">
         <input name="name" placeholder="Description" ref={node => {
@@ -80,14 +166,6 @@ class LoginForm extends Component {
     this.state = {
       username: ''
     }
-  }
-
-  // not currently in use
-  getValidationState() {
-    const length = this.state.username.length;
-    if (length > 10) return 'success';
-    else if (length > 5) return 'warning';
-    else if (length > 0) return 'error';
   }
 
   handleChange(e) {
@@ -168,7 +246,7 @@ class LoginModal extends Component {
 
 class NewRegistryButton extends Component {
   create() {
-    // alert('Stuff goes here');
+    alert('Stuff goes here');
   }
 
   render() {
@@ -187,11 +265,10 @@ class NewRegistryButton extends Component {
 
 class Registry extends Component {
   render() {
-    console.log('this Registry', this);
     const state = store.getState();
     return (
       <div>
-        <ItemList items={state} />
+        <ItemList items={state} removeItem={this.props.removeItem} />
         <ItemForm addItem={this.props.addItem} />
         <div>
           <EmailForm />
@@ -212,8 +289,11 @@ class App extends Component {
     store.dispatch({ type: 'ADD', item });
     const state = store.getState();
     this.setState({ data: state });
-    // this.state.data.push(item);
-    // this.setState({ data: this.state.data });
+  }
+
+  removeItem(val) {
+    store.dispatch({ type: 'REMOVE', key: 0 });
+    this.setState({ showModal: false });
   }
 
   render() {
@@ -228,7 +308,7 @@ class App extends Component {
           <LoginModal />
         </div>
         <Switch>
-          <Route path='/registry' render={()=><Registry addItem={this.addItem.bind(this)}/>} />
+          <Route path='/registry' render={()=><Registry addItem={this.addItem.bind(this)} removeItem={this.removeItem.bind(this)}/>} />
         </Switch>
       </div>
     );
