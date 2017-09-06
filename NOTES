@@ -73,5 +73,33 @@ OK plan is:
 - we will log into server
 - we will then request the current items in the registry and render em
 
+------------
+
+REDUX STUFF:
+
+Important things:
+- mapStateToProps: turns the STATE into PROPS which are passed and bound to the component
+- we specify the properties we want to pass in as props to those lil guys
+- then when state changes, props change, and we're happy
+- mapDispatchToProps: receives dispatch methods (from where?) and turns those into props which are passed to the components. Here we receive a dispatch and turn it into an onClick (for links). 
+- I still don't fully understand that one.
+- OK so basically what is is the following:
+- You're constructing the props object
+- You can put things on there one of two ways:
+- 1) from the state (mapStateToProps)
+- 2) you can give it access to call dispatch (trigger state update) (mapDispatchToProps)
+
+Presentation components:
+- those that have render
+
+Container components:
+- created via connect(mapThing1, mapThing2)(ComponentThatYou'reWrapping)
+
+Can you have a thing that contains TWO components? Nah you probably create two container components and wrap em in a presentation component
+
+
+
+
+
 
 
