@@ -3,6 +3,7 @@ import { Route, Switch } from 'react-router-dom';
 import { Button, Modal, FormGroup, ControlLabel, FormControl, HelpBlock } from 'react-bootstrap';
 import { createStore } from 'redux';
 import './App.css';
+import { Provider } from 'react-redux';
 import * as _ from 'lodash';
 
 window.id = 1;
@@ -10,7 +11,7 @@ window.id = 1;
 function changeItems(state = [{text:'hi2u', key: 0}], action) {
   switch (action.type) {
   case 'ADD':
-    return state.concat([{key: window.id++, text: action.item.text}]);
+    return state.concat([{key: window.id++, text: action.item.text, completed: false}]);
   case 'REMOVE':
     return _.reject(state, item => action.key === item.key);
   case 'UPDATE':
@@ -23,6 +24,19 @@ function changeItems(state = [{text:'hi2u', key: 0}], action) {
       return item;
     });
     return newState;
+  case 'COMPLETE':
+    return _.map(state, item => {
+      if (action.key === item.key) {
+        // Use extend here too
+        return {
+          key: action.key,
+          text: item.text,
+          completed: true
+        };
+      }
+
+      return item;
+    });
   default:
     return state;
   }
@@ -50,9 +64,21 @@ class ItemForm extends Component {
 }
 
 class ItemText extends Component {
+  // Here's an example of how I'm using state shittily
+  // How do I do this in react land?
+  // 1) Call an exposed function from its parent (update yoself)
+  // - this requires that exposed function to be passed to its sibling
+  // 2) Redux magic somehow =/
+  constructor(props) {
+    super(props);
+    this.state = {
+      completed: false
+    };
+  }
+
   render() {
     return (
-      <span>{this.props.item.text}</span>
+      <span>{this.props.item.text}{this.state.completed.toString()}</span>
     );
   }
 }
@@ -64,12 +90,13 @@ class ItemEditButton extends Component {
     const initialText = _.find(state, item => item.key === this.props.item.key).text;
     this.state = {
       showModal: false,
-      text: initialText
+      text: initialText,
+      initialText
     };
   }
 
   close() {
-    this.setState({ showModal: false });
+    this.setState({ showModal: false, text: this.state.initialText });
   }
 
   delete() {
@@ -87,6 +114,7 @@ class ItemEditButton extends Component {
   }
   
   handleSubmit(e) {
+    // TODO (nw): do things here
     e.preventDefault();
   }
 
@@ -131,16 +159,38 @@ class ItemEditButton extends Component {
   }
 }
 
+class ItemCompleteButton extends Component {
+  handleComplete() {
+    this.props.completeItem({ key: this.props.item.key });
+  }
+
+  render() {
+    return (
+      <Button
+        bsStyle="primary"
+        bsSize="small"
+        onClick={this.handleComplete.bind(this)}
+      >
+        Cross Off
+      </Button>
+    );
+  }
+}
+
 class ItemContainer extends Component {
   render() {
     return (
       <div>
+        <ItemText item={this.props.item}/>
         <ItemEditButton
           item={this.props.item}
           removeItem={this.props.removeItem}
           updateItem={this.props.updateItem}
         />
-        <ItemText item={this.props.item}/>
+        <ItemCompleteButton
+          item={this.props.item}
+          completeItem={this.props.completeItem}
+        />
       </div>
     );
   }
@@ -155,6 +205,7 @@ class ItemList extends Component {
           key={item.id}
           removeItem={this.props.removeItem}
           updateItem={this.props.updateItem}
+          completeItem={this.props.completeItem}
         />
       );
     });
@@ -269,16 +320,11 @@ class LoginModal extends Component {
 }
 
 class NewRegistryButton extends Component {
-  create() {
-    alert('Stuff goes here');
-  }
-
   render() {
     return (
       <Button
         bsStyle="primary"
         bsSize="small"
-        onClick={this.create.bind(this)}
         href="/registry"
       >
         Create a New Registry!
@@ -290,12 +336,14 @@ class NewRegistryButton extends Component {
 class Registry extends Component {
   render() {
     const state = store.getState();
+    // Need to determine if you're the registry owner or not
     return (
       <div>
-        <ItemList 
+        <ItemList
           items={state}
           removeItem={this.props.removeItem}
           updateItem={this.props.updateItem}
+          completeItem={this.props.completeItem}
         />
         <ItemForm addItem={this.props.addItem} />
         <div>
@@ -326,8 +374,8 @@ class App extends Component {
   addItem(val) {
     const item = { text: val, id: window.id++ };
     store.dispatch({ type: 'ADD', item });
-    // There's got to be a better way of triggering update
-    this.forceUpdate();
+    // TODO (nw): There's got to be a better way of triggering update
+    // this.forceUpdate();
   }
 
   removeItem(val) {
@@ -340,23 +388,31 @@ class App extends Component {
     this.forceUpdate();
   }
 
+  completeItem({ key, text }) {
+    store.dispatch({ type: 'COMPLETE', key, text });
+    this.forceUpdate();
+  }
+
   render() {
     return (
-      <div className="App">
-        <div className="App-header">
-          <h2>Wedding Registry</h2>
+      <Provider store={store}>
+        <div className="App">
+          <div className="App-header">
+            <h2>Wedding Registry</h2>
+          </div>
+          <Switch>
+            <Route exact path='/' component={FrontPageModal} />
+            <Route path='/registry' render={()=>
+              <Registry
+                addItem={this.addItem.bind(this)}
+                removeItem={this.removeItem.bind(this)}
+                updateItem={this.updateItem.bind(this)}
+                completeItem={this.completeItem.bind(this)}
+              />}
+            />
+          </Switch>
         </div>
-        <Switch>
-          <Route exact path='/' component={FrontPageModal} />
-          <Route path='/registry' render={()=>
-            <Registry
-              addItem={this.addItem.bind(this)}
-              removeItem={this.removeItem.bind(this)}
-              updateItem={this.updateItem.bind(this)}
-            />}
-          />
-        </Switch>
-      </div>
+      </Provider>
     );
   }
 }
