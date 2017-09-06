@@ -2,21 +2,27 @@ import React, { Component } from 'react';
 import { Route, Switch } from 'react-router-dom';
 import { Button, Modal, FormGroup, ControlLabel, FormControl, HelpBlock } from 'react-bootstrap';
 import { createStore } from 'redux';
-import logo from './logo.svg';
 import './App.css';
 import * as _ from 'lodash';
 
 window.id = 1;
 
-function changeItems(state = [{text:'hi', key: 0}], action) {
+function changeItems(state = [{text:'hi2u', key: 0}], action) {
   switch (action.type) {
   case 'ADD':
     return state.concat([{key: window.id++, text: action.item.text}]);
   case 'REMOVE':
-    console.log('here');
-    console.log('action', action);
-    console.log('state', state);
     return _.reject(state, item => action.key === item.key);
+  case 'UPDATE':
+    const newState = _.map(state, item => {
+      if (action.key === item.key) {
+        // TODO (nw): this should probably be an extends
+        return action;
+      }
+
+      return item;
+    });
+    return newState;
   default:
     return state;
   }
@@ -37,7 +43,7 @@ class ItemForm extends Component {
         <input name="name" placeholder="Description" ref={node => {
           this.input = node;
         }}/>
-        <Button>Add Item</Button>
+        <Button type="submit">Add Item</Button>
       </form>
     );
   }
@@ -54,8 +60,11 @@ class ItemText extends Component {
 class ItemEditButton extends Component {
   constructor(props) {
     super(props);
+    const state = store.getState();
+    const initialText = _.find(state, item => item.key === this.props.item.key).text;
     this.state = {
-      showModal: false
+      showModal: false,
+      text: initialText
     };
   }
 
@@ -69,8 +78,7 @@ class ItemEditButton extends Component {
   }
 
   save() {
-    // TODO (nw): this
-    // this.props.saveItem({ key: this.props.item.key });
+    this.props.updateItem({ key: this.props.item.key, text: this.state.text });
     this.setState({ showModal: false });
   }
 
@@ -82,8 +90,11 @@ class ItemEditButton extends Component {
     e.preventDefault();
   }
 
+  handleChange(e) {
+    this.setState({ text: e.target.value });
+  }
+
   render() {
-    console.log('this', this);
     return (
       <span>
         <Button
@@ -99,18 +110,20 @@ class ItemEditButton extends Component {
           </Modal.Header>
 	  <Modal.Body>
             <FormGroup
-              controlId="Update Description"
+              controlId="formBasicText"
             >
-            <FormControl
-              type="text"
-              value={this.props.item.text}
-            />
+              <FormControl
+                type="text"
+                value={this.state.text}
+                placeholder="Description of your item"
+                onChange={this.handleChange.bind(this)}
+              />
             </FormGroup>
           </Modal.Body>
           <Modal.Footer>
             <Button onClick={this.delete.bind(this)}>Delete</Button>
             <Button onClick={this.close.bind(this)}>Close</Button>
-            <Button onClick={this.save.bind(this)}>Save</Button>
+            <Button onClick={this.save.bind(this)} type="submit">Save</Button>
           </Modal.Footer>
         </Modal>
       </span>
@@ -122,7 +135,11 @@ class ItemContainer extends Component {
   render() {
     return (
       <div>
-        <ItemEditButton item={this.props.item} removeItem={this.props.removeItem}/>
+        <ItemEditButton
+          item={this.props.item}
+          removeItem={this.props.removeItem}
+          updateItem={this.props.updateItem}
+        />
         <ItemText item={this.props.item}/>
       </div>
     );
@@ -132,7 +149,14 @@ class ItemContainer extends Component {
 class ItemList extends Component {
   render() {
     const items = this.props.items.map(item => {
-      return (<ItemContainer item={item} key={item.id} removeItem={this.props.removeItem}/>);
+      return (
+        <ItemContainer
+          item={item}
+          key={item.id}
+          removeItem={this.props.removeItem}
+          updateItem={this.props.updateItem}
+        />
+      );
     });
     return (
       <div>
@@ -268,11 +292,26 @@ class Registry extends Component {
     const state = store.getState();
     return (
       <div>
-        <ItemList items={state} removeItem={this.props.removeItem} />
+        <ItemList 
+          items={state}
+          removeItem={this.props.removeItem}
+          updateItem={this.props.updateItem}
+        />
         <ItemForm addItem={this.props.addItem} />
         <div>
           <EmailForm />
         </div>
+      </div>
+    );
+  }
+}
+
+class FrontPageModal extends Component {
+  render() {
+    return (
+      <div>
+        <NewRegistryButton />
+        <LoginModal />
       </div>
     );
   }
@@ -287,28 +326,35 @@ class App extends Component {
   addItem(val) {
     const item = { text: val, id: window.id++ };
     store.dispatch({ type: 'ADD', item });
-    const state = store.getState();
-    this.setState({ data: state });
+    // There's got to be a better way of triggering update
+    this.forceUpdate();
   }
 
   removeItem(val) {
-    store.dispatch({ type: 'REMOVE', key: 0 });
-    this.setState({ showModal: false });
+    store.dispatch({ type: 'REMOVE', key: val.key });
+    this.forceUpdate();
+  }
+
+  updateItem({ key, text }) {
+    store.dispatch({ type: 'UPDATE', key, text });
+    this.forceUpdate();
   }
 
   render() {
     return (
       <div className="App">
         <div className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
           <h2>Wedding Registry</h2>
         </div>
-        <div>
-          <NewRegistryButton />
-          <LoginModal />
-        </div>
         <Switch>
-          <Route path='/registry' render={()=><Registry addItem={this.addItem.bind(this)} removeItem={this.removeItem.bind(this)}/>} />
+          <Route exact path='/' component={FrontPageModal} />
+          <Route path='/registry' render={()=>
+            <Registry
+              addItem={this.addItem.bind(this)}
+              removeItem={this.removeItem.bind(this)}
+              updateItem={this.updateItem.bind(this)}
+            />}
+          />
         </Switch>
       </div>
     );
