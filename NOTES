@@ -1,0 +1,56 @@
+What should the thing look like?
+
+We need to have two entirely separate sites, one for the couple, one for the guest?
+
+Is that true?
+
+What's the difference between them?
+
+Two different things we can do here:
+1. We can have the individual components be aware of whether they're couple or guest and render (or not) accordingly
+2. We can have the parent components be aware of whether they're couple or guest or choose to include their children (or not) accordingly
+3. We can have two entirely separate parent container components, one for couple, one for guest. I think this is probably the cleanest.
+
+NOTE: what happens if we want to have a parent of that parent component? Then it needs to know its own mode. That sucks. 
+
+What DOES the structure here look like? Can we make it equivalent for both couple and guest? Yeah, probably.
+
+The difference will be in the inclusion or exclusion of certain additional elements for one that does not exist for the other. Examples of this are:
+
+- Send wishlist to guests
+- Add additional guests
+- Create personalized note
+
+Any functionality we need from a guest that we don't want from the couple? 
+
+Shouldn't be, nope. Should just be a strict subset, at least for now.
+
+WHAT DOES SITE LOOK LIKE FROM COUPLE PERSPECTIVE?
+
+ABSOLUTELY MVP CORE FUNCTIONALITY:
+
+For couple:
+1. Add item (description only)
+2. Add guest (send guest an email link)
+3. Login/logout
+4. Basic styling
+
+For guest:
+1. Ability to view
+2. Ability to cross off
+
+VISUALS:
+Add item thing should look like:
+Description box, button to add
+This should always be below the list of things already added
+There should be an edit / delete button as well.
+
+
+
+
+
+
+
+
+
+
