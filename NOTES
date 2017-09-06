@@ -45,12 +45,33 @@ Description box, button to add
 This should always be below the list of things already added
 There should be an edit / delete button as well.
 
+-----------
 
+Front page:
 
+1. Login button needs to exist for people who already have accounts
+2. At some point you may want a forgot password button. Do I really need that already? That seems like not-a-v0.
+3. I think the search-for-a-registry functionality is not essential. 
+4. What is essential is the create a registry button
 
+SO
 
+Front page:
+1. Login
+2. Create a registry
+3. (Maybe eventually) - find a registry.
+Yeah fuck find a registry, as long as you have email functionality that will be good enough
 
+What will the create a registry button DO? How do we want it to work?
 
+I think you basically need a router. That should basically be a whole separate page.
+
+OK plan is:
+1. Set up routing
+- we need to go from front page -> edit the registry page
+2. Set up auth
+- we will log into server
+- we will then request the current items in the registry and render em
 
 
 
