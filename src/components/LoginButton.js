@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
-import { Button, Modal, FormGroup, FormControl } from 'react-bootstrap';
+import { Button, Modal } from 'react-bootstrap';
+
+import LoginForm from './LoginForm';
 
 class LoginButton extends Component {
   constructor(props) {
@@ -13,55 +15,45 @@ class LoginButton extends Component {
     this.setState({ showModal: true });
   }
 
-  close() {
+  cancel() {
     this.setState({ showModal: false });
   }
 
-  delete() {
+  login() {
+    // This has to do some complex logic...right?
+    // What does it need to do? 
+    // 1) issue AJAX request
+    // 2) if successful, go to another page
+    // 3) if failed, display that
+    // TODO (nw): figure out how to make this work with redux. What is the stored state, if anything? What would our container components be?
+    // Possibly we want container components that don't have reducers / actions?
+    // Our state would probably be whether we're logged in / who we're logged in as
     this.setState({ showModal: false });
-  }
-
-  save() {
-    this.setState({ showModal: false });
-  }
-
-  handleChange() {
-    console.log('handleChange');
   }
 
   render() {
     return (
-      <span>
+      <div>
         <Button
           bsStyle="primary"
           bsSize="small"
           onClick={this.open.bind(this)}
         >
-          Edit
+          Login To Existing Registry
         </Button>
-        <Modal show={this.state.showModal} onHide={this.close.bind(this)}>
+        <Modal show={this.state.showModal} onHide={this.cancel.bind(this)}>
           <Modal.Header closeButton>
             <Modal.Title>Login</Modal.Title>
           </Modal.Header>
-          <Modal.Body>
-            <FormGroup
-              controlId="formBasicText"
-            >
-              <FormControl
-                type="text"
-                value={this.state.text}
-                placeholder="Description of your item"
-                onChange={this.handleChange.bind(this)}
-              />
-            </FormGroup>
+	  <Modal.Body>
+            <LoginForm />
           </Modal.Body>
           <Modal.Footer>
-            <Button onClick={this.delete.bind(this)}>Delete</Button>
-            <Button onClick={this.close.bind(this)}>Close</Button>
-            <Button onClick={this.save.bind(this)} type="submit">Save</Button>
+            <Button onClick={this.cancel.bind(this)}>Cancel</Button>
+            <Button onClick={this.login.bind(this)}>Submit</Button>
           </Modal.Footer>
         </Modal>
-      </span>
+      </div>
     );
   }
 };
